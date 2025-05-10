@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zihin Bahçesi - MNTK</title>
+  <style>
+    :root {
+      --bg-color: linear-gradient(to bottom right, #d7f0ff, #cbe6f6);
+    }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-color);
+      transition: background 1s ease-in-out;
+      overflow-x: hidden;
+    }
+    header { background-color: #3a3d98; color: white; padding: 20px; text-align: center; }
+    .reminder-banner {
+      background-color: #fff8c6;
+      color: #5d5400;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+      border-bottom: 1px solid #e0d98b;
+      display: none;
+    }
+    .form-container { text-align: center; padding: 20px; }
+    .form-container input { padding: 10px; margin: 5px; width: 200px; border-radius: 6px; border: 1px solid #aaa; }
+    .form-container button { padding: 10px 20px; border: none; background-color: #3a3d98; color: white; border-radius: 8px; cursor: pointer; }
+    .garden { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 40px; max-width: 1000px; margin: auto; }
+    .plant-box { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.3s; position: relative; overflow: hidden; }
+    .plant-box:hover { transform: translateY(-5px); }
+    .plant-emoji { font-size: 40px; margin-bottom: 10px; display: block; animation: sway 3s ease-in-out infinite; }
+    .mint-button, .complete-button { margin-top: 10px; padding: 8px 15px; background-color: #3a3d98; color: white; border: none; border-radius: 8px; cursor: pointer; margin-right: 5px; }
+    .mint-button:hover, .complete-button:hover { background-color: #2d2f7a; }
+    .nft-border { border: 3px dashed gold; animation: glow 2s infinite alternate, bloom 1.5s ease-in-out infinite; }
+    .progress-bar { background-color: #eee; border-radius: 6px; height: 10px; margin-top: 5px; }
+    .progress-bar div { height: 10px; background-color: #3a3d98; border-radius: 6px; transition: width 0.3s ease; }
+    .week-history { font-size: 16px; margin-top: 10px; }
+    .score-board { text-align: center; font-size: 1.2em; margin-bottom: 10px; }
+    .mntk-board { text-align: center; font-size: 1.2em; margin-bottom: 30px; color: #3a3d98; }
+    .leaf { position: absolute; top: -20px; font-size: 24px; animation: floatLeaf 6s linear infinite; opacity: 0.5; }
+    @keyframes floatLeaf {
+      0% { transform: translateY(0) rotate(0); }
+      100% { transform: translateY(800px) rotate(360deg); }
+    }
+    @keyframes glow { from { box-shadow: 0 0 5px gold; } to { box-shadow: 0 0 20px gold; } }
+    @keyframes bloom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes sway { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(3deg); } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MNTK - Zihin Bahçesi</h1>
+    <p>Alışkanlıklarını geliştir, zihnini yeşert!</p>
+  </header>
+
+  <div id="reminder" class="reminder-banner">📣 Bugün için henüz tamamlanmamış alışkanlıkların var!</div>
+
+  <div class="form-container">
+    <input type="text" id="habitName" placeholder="Alışkanlık adı">
+    <button onclick="addHabit()">Alışkanlık Ekle</button>
+  </div>
+
+  <div class="score-board">🌿 Zihin Skoru: <strong id="score">0</strong></div>
+  <div class="mntk-board">💰 Kazandığın MNTK: <strong id="mntk">0</strong></div>
+  <section class="garden" id="garden"></section>
+
+  <div class="leaf" style="left: 10%;">🍃</div>
+  <div class="leaf" style="left: 50%;">🍂</div>
+  <div class="leaf" style="left: 80%;">🍁</div>
+
+  <script>
+    let totalMNTK = 0;
+    const emojiMap = {
+      'Su İçme': '💧',
+      'Meditasyon': '🧘',
+      'Kitap Okuma': '📖',
+      'Günlük Yazma': '✍️',
+      'Spor': '🏃',
+      'default': ['🌷', '🌻', '🌼', '🌸', '🌺', '🌹']
+    };
+    let habits = [
+      { name: 'Su İçme', days: 2, emoji: '💧', rewarded: false, lastCompleted: null, history: [] },
+      { name: 'Meditasyon', days: 5, emoji: '🧘', rewarded: false, lastCompleted: null, history: [] }
+    ];
+
+    function getStage(days) {
+      return days >= 7 ? 3 : days >= 4 ? 2 : 1;
+    }
+
+    function calculateScore() {
+      return habits.reduce((sum, h) => sum + (getStage(h.days) * 10), 0);
+    }
+
+    function updateScore() {
+      document.getElementById('score').innerText = calculateScore();
+      document.getElementById('mntk').innerText = totalMNTK;
+    }
+
+    function renderGarden() {
+      const garden = document.getElementById('garden');
+      const reminder = document.getElementById('reminder');
+      garden.innerHTML = '';
+      let anyIncomplete = false;
+
+      habits.forEach((habit, index) => {
+        const today = new Date().toDateString();
+        const canCompleteToday = habit.lastCompleted !== today;
+        if (canCompleteToday) anyIncomplete = true;
+
+        const stage = getStage(habit.days);
+        const weekStr = habit.history.slice(-7).map(v => v ? '🟩' : '⬜️').join('');
+        const progress = Math.min(habit.days, 10) * 10;
+        const showMint = stage === 3 && habit.days >= 10 && !habit.rewarded;
+
+        garden.innerHTML += `
+          <div class="plant-box ${showMint ? 'nft-border' : ''}">
+            <div class="plant-emoji">${habit.emoji}</div>
+            <h3>${habit.name}</h3>
+            <p>Gün: ${habit.days}</p>
+            <div class="progress-bar"><div style="width: ${progress}%"></div></div>
+            <div class="week-history">${weekStr}</div>
+            <button class="complete-button" onclick="completeDay(${index})" ${canCompleteToday ? '' : 'disabled'}>${canCompleteToday ? 'Tamamlandı' : 'Bugün Yapıldı'}</button>
+            ${showMint ? `<button class="mint-button" onclick="mintReward(${index})">Mint Et</button>` : ''}
+          </div>`;
+      });
+
+      reminder.style.display = anyIncomplete ? 'block' : 'none';
+      updateScore();
+    }
+
+    function completeDay(index) {
+      const today = new Date().toDateString();
+      if (habits[index].lastCompleted !== today) {
+        habits[index].days++;
+        habits[index].lastCompleted = today;
+        habits[index].history.push(true);
+        if (habits[index].history.length > 7) habits[index].history.shift();
+        renderGarden();
+      }
+    }
+
+    function mintReward(index) {
+      if (!habits[index].rewarded && habits[index].days >= 10) {
+        totalMNTK += 50;
+        habits[index].rewarded = true;
+        renderGarden();
+      }
+    }
+
+    function addHabit() {
+      const input = document.getElementById('habitName');
+      const name = input.value.trim();
+      if (name) {
+        const emoji = emojiMap[name] || emojiMap['default'][Math.floor(Math.random() * emojiMap['default'].length)];
+        habits.push({ name, days: 0, emoji, rewarded: false, lastCompleted: null, history: [] });
+        input.value = '';
+        renderGarden();
+      }
+    }
+
+    renderGarden();
+  </script>
+  <script src="js/wallet-header.js"></script>
+</body>
+</html>

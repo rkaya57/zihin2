@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MNTK - MindToken</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('https://images.unsplash.com/photo-1604537529428-15bcbeecfe4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
+    }
+    header {
+      background: rgba(58, 61, 152, 0.9);
+      color: #fff;
+      padding: 80px 20px 60px;
+      text-align: center;
+      position: relative;
+    }
+    header img.logo {
+      width: 110px;
+      height: auto;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    header h1 { margin: 30px 0 10px; font-size: 3em; }
+    header p { font-size: 1.2em; max-width: 600px; margin: auto; }
+    nav {
+      background: rgba(42, 42, 42, 0.95);
+      color: white;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 14px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 10px 15px;
+      font-weight: 600;
+      font-size: 1em;
+      transition: color 0.3s;
+    }
+    nav a:hover { color: #ffd700; }
+    section {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 60px 20px;
+      max-width: 1000px;
+      margin: 40px auto;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    section h2 { color: #3a3d98; font-size: 2em; margin-bottom: 20px; }
+    section ul { line-height: 1.8em; padding-left: 20px; }
+    .download-btn {
+      display: inline-block;
+      padding: 12px 25px;
+      background-color: #3a3d98;
+      color: white;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 8px;
+      margin-top: 20px;
+      transition: background-color 0.3s;
+    }
+    .download-btn:hover { background-color: #2d2f7a; }
+    footer {
+      background: #222;
+      color: white;
+      text-align: center;
+      padding: 25px;
+      margin-top: 40px;
+      font-size: 0.9em;
+    }
+    a { color: #3a3d98; }
+  </style>
+</head>
+<body>
+
+<div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+  <button onclick="connectKeplr()" style="padding: 10px 20px; font-weight: bold; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+    🔐 Keplr'ı Bağla
+  </button>
+  <div id="walletAddress" style="margin-top: 6px; font-size: 0.9em; font-weight: bold; color: #1e3a8a;"></div>
+</div>
+
+<header>
+  <img src="logo.png" class="logo" alt="MNTK Logo" />
+  <h1>MNTK - MindToken</h1>
+  <p>Zihinsel gelişim için Web3 destekli alışkanlık ve farkındalık tokeni</p>
+</header>
+
+<nav>
+  <a href="index.html">🏠 Ana Sayfa</a>
+  <a href="zihin-bahcesi.html">🌸 Zihin Bahçesi</a>
+  <a href="soru.html">🧠 Psikolojik Test</a>
+  <a href="oyunlar.html">🎮 Zihin Oyunları</a>
+  <a href="#download">📱 APK İndir</a>
+  <a href="#contact">📬 İletişim</a>
+</nav>
+
+<section id="about">
+  <h2>Proje Hakkında</h2>
+  <p>MNTK (MindToken), bireylerin zihinsel gelişimini desteklemek amacıyla oluşturulmuş bir Web3 tokenidir...</p>
+</section>
+
+<div id="keplrDeepLink" style="text-align: center; display: none;">
+  <a href="https://deeplink.keplr.app/web-browser?url=https://mysweetmind.app"
+     style="padding: 12px 22px; background: #10b981; color: white; border-radius: 8px; font-weight: bold; text-decoration: none;">
+    📲 Keplr'da Uygulamayı Aç
+  </a>
+</div>
+
+<footer>
+  <p>&copy; 2025 MindToken | Tüm hakları saklıdır.</p>
+</footer>
+
+<script>
+  function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+  async function connectKeplr() {
+    if (isMobileDevice()) {
+      window.location.href = "https://deeplink.keplr.app/show-address?chainId=phoenix-1";
+    } else {
+      if (!window.keplr) {
+        alert("🧩 Lütfen Keplr uzantısını kur ve etkinleştir.");
+        return;
+      }
+      try {
+        await window.keplr.enable("phoenix-1");
+        const offlineSigner = window.getOfflineSigner("phoenix-1");
+        const accounts = await offlineSigner.getAccounts();
+        const address = accounts[0].address;
+        document.getElementById("walletAddress").textContent = "🔗 Bağlı: " + address;
+      } catch (err) {
+        console.error(err);
+        alert("❌ Bağlantı reddedildi veya bir hata oluştu.");
+      }
+    }
+  }
+
+  if (isMobileDevice()) {
+    document.getElementById("keplrDeepLink").style.display = "block";
+  }
+</script>
+
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>🎨 Renk Takibi</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f9ff; text-align: center; padding: 40px; }
+    #colors { display: flex; justify-content: center; gap: 12px; margin: 30px 0; }
+    .box { width: 60px; height: 60px; border-radius: 8px; }
+    button { padding: 10px 20px; background: #0ea5e9; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>🎨 Renk Takibi</h1>
+  <div id="colors"></div>
+  <button onclick="show()">Göster</button>
+
+  <script>
+    const renkler = ['red', 'blue', 'green', 'yellow'];
+    let secim = [];
+
+    function show() {
+      const container = document.getElementById('colors');
+      container.innerHTML = '';
+      secim = [];
+      for (let i = 0; i < 4; i++) {
+        const color = renkler[Math.floor(Math.random() * renkler.length)];
+        secim.push(color);
+        const div = document.createElement('div');
+        div.className = 'box';
+        div.style.background = color;
+        container.appendChild(div);
+      }
+      setTimeout(() => { container.innerHTML = ''; alert('Şimdi hatırla!'); }, 1000);
+    }
+  </script>
+  <script src="js/wallet-header.js"></script>
+</body>
+</html>

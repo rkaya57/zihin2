@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Psikolojik Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #dbeafe, #f0fdf4);
+    }
+    header {
+      background-color: #2563eb;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 15px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .question {
+      margin-bottom: 25px;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 10px;
+      border-left: 5px solid #2563eb;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease-in-out;
+    }
+    .question.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .question label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+    }
+    .options label {
+      display: inline-block;
+      margin: 5px 10px 0 0;
+      background: #eff6ff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .options input[type="radio"] {
+      margin-right: 6px;
+    }
+    .options label:hover {
+      background-color: #dbeafe;
+    }
+    button {
+      display: block;
+      margin: 40px auto 0;
+      padding: 14px 36px;
+      background-color: #10b981;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #059669;
+    }
+    #result {
+      margin-top: 40px;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 1.1em;
+      text-align: center;
+      font-weight: 500;
+    }
+    #result.green { background: #dcfce7; border-left: 6px solid #22c55e; }
+    #result.yellow { background: #fef9c3; border-left: 6px solid #eab308; }
+    #result.red { background: #fee2e2; border-left: 6px solid #ef4444; }
+    canvas { margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <header>🧠 Psikolojik Farkındalık Testi</header>
+
+  <div class="container">
+    <form id="testForm">
+      <!-- Sorular burada dinamik olarak eklenecek -->
+    </form>
+
+    <button onclick="evaluateTest()">Testi Bitir ve Sonucu Gör</button>
+
+    <div id="walletDisplay" style="
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    background: #2563eb;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.9em;
+    font-weight: 600;
+    z-index: 1000;
+    display: none;
+  "></div>
+
+    <div id="result" style="display: none;"></div>
+    <canvas id="resultChart"></canvas>
+    <canvas id="progressChart"></canvas>
+    <div style="text-align: center; margin-top: 30px;">
+      <button onclick="claimReward()">🎁 MNTK Ödülünü Al</button>
+      <p id="walletStatus"></p>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      "Sabahları güne pozitif başlamakta zorlanırım.",
+      "Gün boyunca yaptığım işleri unutma eğilimindeyim.",
+      "Anda kalmakta güçlük çekiyorum.",
+      "Zihnimi boşaltmakta zorlanıyorum.",
+      "Stresli durumlarda genellikle paniklerim.",
+      "Kendimle ilgili olumsuz düşünceler zihnimi sıkça meşgul eder.",
+      "Zihinsel olarak tükendiğimi hissediyorum.",
+      "Kendime zihinsel mola vermek için zaman ayırırım.",
+      "Gece yattığımda düşünceler zihnimi susturmaz.",
+      "Duygularımı yönetirken zihinsel kontrolüm yüksektir.",
+      "Uzun süre bir işe odaklanmakta zorlanıyorum.",
+      "Zihinsel dağınıklık verimliliğimi azaltıyor.",
+      "Düşüncelerim sık sık geçmişteki olaylara kayıyor.",
+      "Zihinsel sağlığıma düzenli olarak dikkat ediyorum.",
+      "Kendimi zihinsel olarak güçlü ve dirençli hissediyorum."
+    ];
+
+    window.onload = () => {
+      const form = document.getElementById('testForm');
+      questions.forEach((q, i) => {
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `
+          <label>${i + 1}. ${q}</label>
+          <div class="options">
+            <label><input type="radio" name="q${i+1}" value="1">1</label>
+            <label><input type="radio" name="q${i+1}" value="2">2</label>
+            <label><input type="radio" name="q${i+1}" value="3">3</label>
+            <label><input type="radio" name="q${i+1}" value="4">4</label>
+            <label><input type="radio" name="q${i+1}" value="5">5</label>
+          </div>
+        `;
+        form.appendChild(div);
+      });
+
+      const all = document.querySelectorAll('.question');
+      all.forEach((el, i) => {
+        setTimeout(() => el.classList.add('visible'), i * 100);
+      });
+    }
+
+    function evaluateTest() {
+      let total = 0, answered = 0;
+      for (let i = 1; i <= 15; i++) {
+        const options = document.getElementsByName('q' + i);
+        for (const opt of options) {
+          if (opt.checked) {
+            total += parseInt(opt.value);
+            answered++;
+          }
+        }
+      }
+
+      if (answered < 15) {
+        alert('Lütfen tüm soruları cevaplayınız.');
+        return;
+      }
+
+      const resultDiv = document.getElementById('result');
+      let resultText = '', cssClass = '';
+
+      if (total >= 55) {
+        resultText = '🟢 Zihin Durağan: Dengelisin. Günlük alışkanlıklarına devam et!';
+        cssClass = 'green';
+      } else if (total >= 35) {
+        resultText = '🟡 Zihin Dalgalı: İnişli çıkışlısın. Dinlenmeye ve dengeye odaklan.';
+        cssClass = 'yellow';
+      } else {
+        resultText = '🔴 Zihin Bulanık: Stresli ve yorgun görünüyorsun. Dinlenmeye ihtiyaç var.';
+        cssClass = 'red';
+      }
+
+      resultDiv.textContent = resultText;
+      resultDiv.className = cssClass;
+      resultDiv.style.display = 'block';
+
+      let scores = JSON.parse(localStorage.getItem("zihinSkorlari") || "[]");
+      scores.push(total);
+      localStorage.setItem("zihinSkorlari", JSON.stringify(scores));
+
+      const ctx = document.getElementById('resultChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Toplam Puan', 'Denge', 'Stres/Yorgunluk'],
+          datasets: [{
+            data: [total, total >= 55 ? total : 0, total < 35 ? total : 0],
+            backgroundColor: ['#3b82f6', '#10b981', '#f87171']
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, max: 75 } }
+        }
+      });
+
+      const ctx2 = document.getElementById('progressChart').getContext('2d');
+      new Chart(ctx2, {
+        type: 'line',
+        data: {
+          labels: scores.map((_, i) => `Test ${i+1}`),
+          datasets: [{
+            label: 'Zihin Gelişimi',
+            data: scores,
+            fill: false,
+            borderColor: '#2563eb',
+            tension: 0.1
+          }]
+        }
+      });
+    }
+
+    async function claimReward() {
+      if (!window.keplr) {
+        alert("Keplr yüklü değil"); return;
+      }
+      const chainId = "phoenix-1"; // veya rebel-2
+      await window.keplr.enable(chainId);
+      const offlineSigner = window.getOfflineSigner(chainId);
+      const accounts = await offlineSigner.getAccounts();
+      const address = accounts[0].address;
+      document.getElementById("walletStatus").innerText = "🔗 Bağlandı: " + address;
+
+      try {
+        alert("🪙 MNTK ödül işlemi gönderildi! (Simülasyon)");
+      } catch (e) {
+        alert("Hata: Ödül alınamadı." + e);
+      }
+    }
+    window.addEventListener('load', async () => {
+  if (window.keplr) {
+    const chainId = "phoenix-1"; // testnet için "rebel-2"
+    try {
+      await window.keplr.enable(chainId);
+      const offlineSigner = window.getOfflineSigner(chainId);
+      const accounts = await offlineSigner.getAccounts();
+      const address = accounts[0].address;
+      
+      // cüzdan adresini ekrana yaz
+      const displayBox = document.getElementById("walletDisplay");
+      displayBox.textContent = "🔗 " + address;
+      displayBox.style.display = "block";
+    } catch (err) {
+      console.log("Keplr cüzdan bağlantısı başarısız:", err);
+    }
+  }
+});
+  </script>
+</body>
+</html>
+

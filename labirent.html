@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>🧩 Labirent Oyunu</title>
+  <style>
+    body { font-family: sans-serif; background: #ede9fe; text-align: center; }
+    #maze { display: grid; grid-template-columns: repeat(5, 40px); margin: 40px auto; gap: 2px; }
+    .cell { width: 40px; height: 40px; background: white; border: 1px solid #ccc; }
+    .player { background: #7c3aed; }
+    .goal { background: #16a34a; }
+  </style>
+</head>
+<body>
+  <h1>🧩 Labirent Bulmaca</h1>
+  <div id="maze"></div>
+  <p>Klavye yön tuşlarını kullan!</p>
+
+  <script>
+    const maze = document.getElementById('maze');
+    const size = 25;
+    let position = 0;
+    let goal = 24;
+
+    function draw() {
+      maze.innerHTML = '';
+      for (let i = 0; i < size; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        if (i === position) cell.classList.add('player');
+        if (i === goal) cell.classList.add('goal');
+        maze.appendChild(cell);
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' && position % 5 < 4) position++;
+      if (e.key === 'ArrowLeft' && position % 5 > 0) position--;
+      if (e.key === 'ArrowUp' && position >= 5) position -= 5;
+      if (e.key === 'ArrowDown' && position < 20) position += 5;
+      draw();
+      if (position === goal) alert('🎉 Başardın!');
+    });
+
+    draw();
+  </script>
+  <script src="js/wallet-header.js"></script>
+</body>
+</html>
